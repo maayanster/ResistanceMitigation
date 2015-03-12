@@ -1,4 +1,4 @@
-function [q_freq, population] = stochastic_model_23Feb(q_freq, Pref, WErr_ref, WErs_ref, WEss_ref, gen_num)
+function [q_freq, population] = Stochastic(q_freq, Pref, WErr_ref, WErs_ref, WEss_ref, gen_num)
 
 % STOCHASTIC_MODEL simulates pesticide resistance starting with small pop
 % ------------------------------------------------------
@@ -20,7 +20,7 @@ function [q_freq, population] = stochastic_model_23Feb(q_freq, Pref, WErr_ref, W
 %
 % Adrian Semmelink
 % Classification: honours project
-% Last revision date: 26-Feb-2015
+% Last revision date: 05-March-2015
 
 %% Initialize
 
@@ -29,9 +29,9 @@ function [q_freq, population] = stochastic_model_23Feb(q_freq, Pref, WErr_ref, W
 % WErs_ref = 0.79;                    % fitness of RS in refuge w/o natural enemies
 % WEss_ref = 0.79;                    % fitness of SS in refuge w/o natural enemies
 % Pref = 0.4;                         % Proportion of total field that is refuge
-%q_freq = 0.001                       % initial frequency of R allele, starting with 1 individual
+% q_freq = 0.001                       % initial frequency of R allele, starting with 1 individual
 
-population = 10000;                    % Initial pest population
+population = 1000;                    % Initial pest population
 K = 50000;                            % Carrying capacity or economic threshold
 p_freq = 1 - q_freq;                  % initial frequency of S allele
 mean_no_progeny = 70;                 % mean progeny produced from one mating (fecundity)
@@ -56,11 +56,9 @@ RSbt = 0;                             % RS genotype frequency Bt
 SSbt = 0;                             % SS genotype frequency Bt
 Pbt = 1-Pref;                         % Proportion of total field that is Bt
 q_fixation = 0;                       % generation when q_freq is larger than 0.1
-intrinsicR = 1.2;                     % intrinsic growth rate
+intrinsicR = 1;                       % intrinsic growth rate
 Fem = 1;                              % Number of females
 Male = 1;                             % Number of males
-
-
 i = 0;                                % Initialize generation count
 
 %% OUTPUT
@@ -69,10 +67,9 @@ q_array=[];
 pop_array=[];
 
 %% CALCULATIONS
-
-while i <= gen_num && population > 0 && Fem > 0 && Male >0 %q_freq <= 0.1 && i <= 20;   % while frequency of R allele less than 0.1 or number of generations less than 20 calculate loop
+while i <= gen_num && population > 0 %&& Fem > 0 && Male >0; %q_freq <= 0.1 && i <= 20;   % while frequency of R allele less than 0.1 or number of generations less than 20 calculate loop
     i = i+1;                      % Count generations
-    disp(i)
+    %disp(i)
     % Round population each loop to convert into whole number
     population = round(population);
     
@@ -86,7 +83,7 @@ while i <= gen_num && population > 0 && Fem > 0 && Male >0 %q_freq <= 0.1 && i <
     RS = 2*q_freq*p_freq;
     RR = q_freq^2;
     
-    %%% If error statement to check that RR/RS/SS total 1
+    %%% if error statement to check that RR/RS/SS total 1
     if ((RR+RS+SS)-1) > 0.000001 && ((RR+RS+SS)-1) < -0.000001; 
         error('RR+RS+SS do not equal 1');
     end
@@ -120,8 +117,7 @@ while i <= gen_num && population > 0 && Fem > 0 && Male >0 %q_freq <= 0.1 && i <
         FemRRxMaleRS = FemRRxMaleRS/(FemRRxMaleRR+FemRRxMaleRS)*FemRR;
         FemRRxMaleRR = FemRRxMaleRR/(FemRRxMaleRR+FemRRxMaleRS)*FemRR;
     end
-        
-    
+         
     % Tracking Female RS genotype
     FemRSxMaleRR = poissrnd(FemRS*MaleRR/Male, 1);
     FemRSxMaleRS = poissrnd(FemRS*MaleRS/Male, 1);
@@ -141,7 +137,6 @@ while i <= gen_num && population > 0 && Fem > 0 && Male >0 %q_freq <= 0.1 && i <
         FemSSxMaleRS = FemSSxMaleRS/(FemSSxMaleRR+FemSSxMaleRS)*FemSS;
         FemSSxMaleSS = 0;
     end
-   
     
     % Calculate 6 different types of pairings:
     RRxRR = FemRRxMaleRR; 
@@ -195,7 +190,7 @@ while i <= gen_num && population > 0 && Fem > 0 && Male >0 %q_freq <= 0.1 && i <
     RSref = binornd(tot_progeny_RS, Pref);
     RRbt = tot_progeny_RR - RRref;
     SSbt = tot_progeny_SS - SSref;
-    RSref = tot_progeny_RS - RSref;  
+    RSbt = tot_progeny_RS - RSref;  
     
     % Selection - fitness w/o natural enemies 
     RRref_x = RRref*Wxrr_ref;
@@ -213,33 +208,9 @@ while i <= gen_num && population > 0 && Fem > 0 && Male >0 %q_freq <= 0.1 && i <
     SSbt = SSbt_x*WEss_bt;
     RSbt = RSbt_x*WErs_bt;
     
-    % Selection on all genotypes, (carrying capacity situation to create a 
-    % roughly logistic growth curve)
-    
+    % Selection due to density dependence (assume logistic growth)
     Nt = RRref + SSref + RSref + RRbt + SSbt + RSbt;
     population = intrinsicR*Nt*(1 - Nt/K);
-    
-    %Growth_rate = (RRref + SSref + RSref + RRbt + SSbt + RSbt)/population;
-    
-    %pop_new = population + Growth_rate*population*(1-population/K);
-    
-    %if pop_new <= 0
-    %    pop_new = K;
-    %end
-   
-    %RRref = RRref/population*pop_new;
-    %SSref = SSref/population*pop_new;
-    %RSref = SSref/population*pop_new;
-    %RRbt = RRbt/population*pop_new;
-    %SSbt = SSbt/population*pop_new;
-    %RSbt = SSbt/population*pop_new;
-    
-    % introduce economic threshold at which pesticide applied (keeps pop
-    % from getting to large for model)
-    %population = RRref + RSref + SSref + RRbt +RSbt + SSbt;
-    %if population >= K;
-    %    population = K/4;
-    %end
     
     % find number of each allele after all selection stages
     q_sum = 2*RRref + RSref + 2*RRbt + RSbt;
@@ -254,15 +225,13 @@ while i <= gen_num && population > 0 && Fem > 0 && Male >0 %q_freq <= 0.1 && i <
         q_fixation = i;
     end
     
-    %population = (round(p_sum+q_sum))/2;
-    
     %saving our population and fequencies info
     q_array = [q_array, q_freq];
     p_array = [p_array, p_freq];
     pop_array = [pop_array, population];
     
 end
-
+ 
 gens = 1:length(q_array);
 figure
 subplot(2,1,1)
@@ -274,4 +243,4 @@ subplot(2,1,2)
 plot(gens, pop_array)
 xlabel('generations');
 ylabel('population');
-display('i', 'output');
+%display(q_array, 'output');
