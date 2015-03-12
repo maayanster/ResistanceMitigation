@@ -1,49 +1,50 @@
-function [q_freq, population] = stochastic_model_18Feb(population, Pref, Wxrr_ref, Wxrs_ref, Wxss_ref, gen_num)
+function [q_freq, population] = stochastic_model_23Feb(q_freq, Pref, WErr_ref, WErs_ref, WEss_ref, gen_num)
 
 % STOCHASTIC_MODEL simulates pesticide resistance starting with small pop
 % ------------------------------------------------------
-% [q_freq, population] = stochastic_model(population, Pref, Wxrr_ref, Wxrs_ref, Wxss_ref, gen_num)
+% [q_freq, population] = stochastic_model_20Feb(population, Pref, Wxrr_ref, Wxrs_ref, Wxss_ref, gen_num)
 % ------------------------------------------------------
 % Description: This function is meant to include random pop fluctuations in
 %              small initial frequencies of a mutant allele, with selection 
 %              from various sources
 % Input:       {population} initial pop size (this will vary in the model)
-%              {Pref} proportion of land in refuge (no pesticide/bt)
-%              {Wxrr_ref} fitness of RR in refuge w/o natural enemies
-%              {Wxrs_ref} fitness of RS in refuge w/o natural enemies
-%              {Wxss_ref} fitness of SS in refuge w/o natural enemies
+%              {Pref} proportion of area that is refuge (no Bt)
+%              {WErr_ref} fitness of RR in refuge with natural enemies
+%              {WErs_ref} fitness of RS in refuge with natural enemies
+%              {WEss_ref} fitness of SS in refuge with natural enemies
 %              {gen_num} numbe rof generation to run model for
 % Output:      {q_freq} frequency of resistant alleles
-%              {population} total pop soze at end of simulation
+%              {population} total pop size at end of simulation
+%              {q_fixation} the generation at which q_freq is more than 0.1
 %              a plot
 %
 % Adrian Semmelink
 % Classification: honours project
-% Last revision date: 18-Feb-2015
+% Last revision date: 26-Feb-2015
 
 %% Initialize
 
-%%% Function inputs don't need to initialize
-% Population = 100000;                % Initial pest population - not used
-% Wxrr_ref = 0.79;                    % fitness of RR in refuge w/o natural enemies
-% Wxrs_ref = 0.79;                    % fitness of RS in refuge w/o natural enemies
-% Wxss_ref = 0.79;                    % fitness of SS in refuge w/o natural enemies
+%%% Function inputs ---> don't need to initialize
+% WErr_ref = 0.79;                    % fitness of RR in refuge w/o natural enemies
+% WErs_ref = 0.79;                    % fitness of RS in refuge w/o natural enemies
+% WEss_ref = 0.79;                    % fitness of SS in refuge w/o natural enemies
 % Pref = 0.4;                         % Proportion of total field that is refuge
+%q_freq = 0.001                       % initial frequency of R allele, starting with 1 individual
 
-q_freq = 10/population;                % initial frequency of R allele, starting with 1 individual
-K = 420000;                          % Carrying capacity
+population = 10000;                    % Initial pest population
+K = 50000;                            % Carrying capacity or economic threshold
 p_freq = 1 - q_freq;                  % initial frequency of S allele
 mean_no_progeny = 70;                 % mean progeny produced from one mating (fecundity)
 std_dev_progeny = 1;                  % standard dev of progeny distribution ---> should be standard error
-Wxrr_bt = 0.207;                          % fitness of RR in field w/o natural enemies
+Wxrr_bt = 0.207;                      % fitness of RR in field w/o natural enemies
 Wxss_bt = 0;                          % fitness of SS in field w/o natural enemies
 Wxrs_bt = 0;                          % fitness of RS in field w/o natural enemies
 WErr_bt = 1;                          % fitness of RR in field due to natural enemies
 WErs_bt = 1;                          % fitness of RS in field due to natural enemies
 WEss_bt = 1;                          % fitness of SS in field due to natural enemies
-WErr_ref = 1;                         % fitness of RR in refuge due to natural enemies
-WErs_ref = 1;                         % fitness of RS in refuge due to natural enemies
-WEss_ref = 1;                         % fitness of SS in refuge due to natural enemies
+Wxrr_ref = 0.207;                         % fitness of RR in refuge w/o natural enemies
+Wxrs_ref = 0.207;                         % fitness of RS in refuge w/o natural enemies
+Wxss_ref = 0.207;                         % fitness of SS in refuge w/o natural enemies
 RR = 0;                               % RR genotype frequency total              
 RS = 0;                               % RS genotype frequency total
 SS = 0;                               % SS genotype frequency total
@@ -54,6 +55,11 @@ RRbt = 0;                             % RR genotype frequency Bt
 RSbt = 0;                             % RS genotype frequency Bt
 SSbt = 0;                             % SS genotype frequency Bt
 Pbt = 1-Pref;                         % Proportion of total field that is Bt
+q_fixation = 0;                       % generation when q_freq is larger than 0.1
+intrinsicR = 1.2;                     % intrinsic growth rate
+Fem = 1;                              % Number of females
+Male = 1;                             % Number of males
+
 
 i = 0;                                % Initialize generation count
 
@@ -64,25 +70,18 @@ pop_array=[];
 
 %% CALCULATIONS
 
-while i <= gen_num %q_freq <= 0.1 && i <= 20;   % while frequency of R allele less than 0.1 or number of generations less than 20 calculate loop
+while i <= gen_num && population > 0 && Fem > 0 && Male >0 %q_freq <= 0.1 && i <= 20;   % while frequency of R allele less than 0.1 or number of generations less than 20 calculate loop
     i = i+1;                      % Count generations
     disp(i)
-    % Round population each loop to prevent binornd returning NaN
+    % Round population each loop to convert into whole number
     population = round(population);
     
-    % Determine how many males/females as integers - use binomial - assume
-    % replacement 
+    % Determine how many males/females - use binomial - assume replacement 
     % distribution to choose a number of females, assume remainder males)  
     Fem = binornd(population,0.5,1);
     Male = population - Fem;   
-    
-    % Convert fem / male pop to type double - poissrnd doesn't work with
-    % integers
-    %Fem = double(Fem);
-    %Male = double(Male);
                
-    % Hardy-weinberg ratios are used to calculate expected relative frequency
-    % Is it necessary to insert stochasticity into this step?  
+    % Hardy-weinberg ratios are used to calculate expected relative frequency  
     SS = p_freq^2;
     RS = 2*q_freq*p_freq;
     RR = q_freq^2;
@@ -101,18 +100,19 @@ while i <= gen_num %q_freq <= 0.1 && i <= 20;   % while frequency of R allele le
     FemRS = poissrnd(RS*Fem, 1);
     
     % Calculate remainders for SS genotypes
-    MaleSS = Male - (MaleRS + MaleRR);
-    FemSS = Fem - (FemRS + FemRR);   
+    MaleSS = Male - (MaleRS + MaleRR);   
     if (MaleRS + MaleRR) > Male;
         MaleSS = 0;
     end
+    
+    FemSS = Fem - (FemRS + FemRR);
     if (FemRS + FemRR) > Fem
         FemSS = 0;
     end
     
     %%% Calculate pairings between genotypes
     % Tracking Female RR genotype
-    FemRRxMaleRR = poissrnd(FemRR*MaleRR/Male, 1); 
+    FemRRxMaleRR = poissrnd(FemRR*MaleRR/Male, 1);  %(check integer divided by 0) 
     FemRRxMaleRS = poissrnd(FemRR*MaleRS/Male, 1);
     FemRRxMaleSS = FemRR - (FemRRxMaleRR + FemRRxMaleRS);   
     if FemRRxMaleSS < 0 
@@ -133,8 +133,8 @@ while i <= gen_num %q_freq <= 0.1 && i <= 20;   % while frequency of R allele le
     end
     
     % Tracking Female SS genotype
-    FemSSxMaleRR = poissrnd(FemRS*MaleRR/Male, 1);
-    FemSSxMaleRS = poissrnd(FemRS*MaleRS/Male, 1);
+    FemSSxMaleRR = poissrnd(FemSS*MaleRR/Male, 1);
+    FemSSxMaleRS = poissrnd(FemSS*MaleRS/Male, 1);
     FemSSxMaleSS = FemSS - (FemSSxMaleRR + FemSSxMaleRS);
     if FemSSxMaleSS < 0;
         FemSSxMaleRR = FemSSxMaleRR/(FemSSxMaleRR+FemSSxMaleRS)*FemSS;
@@ -189,88 +189,72 @@ while i <= gen_num %q_freq <= 0.1 && i <= 20;   % while frequency of R allele le
     tot_progeny_RS = RRxRS_progeny_RS + RRxSS_progeny_RS + SSxRS_progeny_RS + RSxRS_progeny_RS;
     tot_progeny_SS = SSxSS_progeny_SS + SSxRS_progeny_SS + RSxRS_progeny_SS;
     
-    %Oviposition assume random 
-    RRref = tot_progeny_RR*Pref;
-    SSref = tot_progeny_SS*Pref;
-    RSref = tot_progeny_RS*Pref;
-    RRbt = tot_progeny_RR*Pbt;
-    SSbt = tot_progeny_SS*Pbt;
-    RSbt = tot_progeny_RS*Pbt;   
+    % Dividing progeny across Bt and refuge 
+    RRref = binornd(tot_progeny_RR, Pref);
+    SSref = binornd(tot_progeny_SS, Pref);
+    RSref = binornd(tot_progeny_RS, Pref);
+    RRbt = tot_progeny_RR - RRref;
+    SSbt = tot_progeny_SS - SSref;
+    RSref = tot_progeny_RS - RSref;  
     
-    %Selection - fitness w/o natural enemies 
-    RRref = RRref*Wxrr_ref;
-    SSref = SSref*Wxss_ref;
-    RSref = RSref*Wxrs_ref;
-    RRbt = RRbt*Wxrr_bt;
-    SSbt = SSbt*Wxss_bt;
-    RSbt = RSbt*Wxrs_bt;
+    % Selection - fitness w/o natural enemies 
+    RRref_x = RRref*Wxrr_ref;
+    SSref_x = SSref*Wxss_ref;
+    RSref_x = RSref*Wxrs_ref;
+    RRbt_x = RRbt*Wxrr_bt;
+    SSbt_x = SSbt*Wxss_bt;
+    RSbt_x = RSbt*Wxrs_bt;
     
     %Selection due to natural enemies 
-    RRref = RRref*WErr_ref;
-    SSref = SSref*WEss_ref;
-    RSref = RSref*WErs_ref;
-    RRbt = RRbt*WErr_bt;
-    SSbt = SSbt*WEss_bt;
-    RSbt = RSbt*WErs_bt;
+    RRref = RRref_x*WErr_ref;
+    SSref = SSref_x*WEss_ref;
+    RSref = RSref_x*WErs_ref;
+    RRbt = RRbt_x*WErr_bt;
+    SSbt = SSbt_x*WEss_bt;
+    RSbt = RSbt_x*WErs_bt;
     
     % Selection on all genotypes, (carrying capacity situation to create a 
     % roughly logistic growth curve)
-    %pop_total = RRref + SSref + RSref + RRbt + SSbt + RSbt;
     
-    Growth_rate = (RRref + SSref + RSref + RRbt + SSbt + RSbt)/population;
+    Nt = RRref + SSref + RSref + RRbt + SSbt + RSbt;
+    population = intrinsicR*Nt*(1 - Nt/K);
     
-    pop_new = population + Growth_rate*population*(1-population/K);
+    %Growth_rate = (RRref + SSref + RSref + RRbt + SSbt + RSbt)/population;
     
-    if pop_new <= 0
-        pop_new = K;
-    end
-   
-    RRref_x = RRref/population*pop_new;
-    SSref_x = SSref/population*pop_new;
-    RSref_x = SSref/population*pop_new;
-    RRbt_x = RRbt/population*pop_new;
-    SSbt_x = SSbt/population*pop_new;
-    RSbt_x = SSbt/population*pop_new;
+    %pop_new = population + Growth_rate*population*(1-population/K);
     
-    
-    %Normalize to new population after carrying capacity change in
-    %population
-    %RRref = RRref/pop_total*pop_new;
-    %SSref = SSref/pop_total*pop_new;
-    %RSref = SSref/pop_total*pop_new;
-    %RRbt = RRbt/pop_total*pop_new;
-    %SSbt = SSbt/pop_total*pop_new;
-    %RSbt = SSbt/pop_total*pop_new;
-    
-    % Prevent overshoot of carrying capacity
-    %if pop_total >= K;
-    %   pop = pop_total*((K - pop_total)/K);
-    % elseif pop_total < K
-    %     pop = pop_total*(1 - pop_total/K); 
-    % end
-    
-    %hold = pop_total*(1 - pop_total/K);
-    %if hold < 0
-    %    K_survival = 0.1;
-    %else
-    %K_survival = hold/pop_total;
+    %if pop_new <= 0
+    %    pop_new = K;
     %end
-    K_survival = 1;
    
-    %find number of each allele after all selection stages
-    q_sum = 2*RRref_x*K_survival + RSref_x*K_survival + 2*RRbt_x*K_survival + RSbt_x*K_survival;
-    p_sum = 2*SSref_x*K_survival + RSref_x*K_survival + 2*SSbt_x*K_survival + RSbt_x*K_survival;
+    %RRref = RRref/population*pop_new;
+    %SSref = SSref/population*pop_new;
+    %RSref = SSref/population*pop_new;
+    %RRbt = RRbt/population*pop_new;
+    %SSbt = SSbt/population*pop_new;
+    %RSbt = SSbt/population*pop_new;
+    
+    % introduce economic threshold at which pesticide applied (keeps pop
+    % from getting to large for model)
+    %population = RRref + RSref + SSref + RRbt +RSbt + SSbt;
+    %if population >= K;
+    %    population = K/4;
+    %end
+    
+    % find number of each allele after all selection stages
+    q_sum = 2*RRref + RSref + 2*RRbt + RSbt;
+    p_sum = 2*SSref + RSref + 2*SSbt + RSbt;
     
     % Finding p and q
-    q_freq = round(q_sum/(q_sum+p_sum));
-    p_freq = round(p_sum/(p_sum+q_sum));
+    q_freq = (q_sum/(q_sum+p_sum));
+    p_freq = (p_sum/(p_sum+q_sum));
     
     % displaying generation at which fixation occurs
     if  q_freq >= 0.1 && q_fixation ==0;
         q_fixation = i;
     end
     
-    population = (round(p_sum+q_sum))/2;
+    %population = (round(p_sum+q_sum))/2;
     
     %saving our population and fequencies info
     q_array = [q_array, q_freq];
@@ -280,7 +264,7 @@ while i <= gen_num %q_freq <= 0.1 && i <= 20;   % while frequency of R allele le
 end
 
 gens = 1:length(q_array);
-%figure
+figure
 subplot(2,1,1)
 plot(gens, q_array, gens, p_array)
 xlabel('generations');
