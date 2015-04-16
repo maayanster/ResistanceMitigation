@@ -1,0 +1,97 @@
+function[gen2thresh_25percentile, gen2thresh_50percentile, ...
+    gen2thresh_75percentile, gen2thresh_mean, runs_below_thresh, times_crashed] = Stochastic_Runs...
+    (q_freq, Pref, K, WErr_ref, WErs_ref, WEss_ref,WErr_toxic, WErs_toxic, ...
+    WEss_toxic, gen_num)
+% Stochastic_Runs runs stochastic insecticide resistance model 
+% -------------------------------------------------------------------
+% [q_fix_percentileA, q_fix_percentileB, q_fix_percentileC, q_fix_mean] = 
+% Run_stochastic_12March(q_freq, Pref, WErr_ref, WErs_ref, WEss_ref, 
+% gen_num)
+% -------------------------------------------------------------------
+% Description:   Runs 100 simulations of stochastic insecticide resistance
+%                model generating 100 values of generations to threshold,
+%                which are sorted. Calculates and outputs the 25th 
+%                percentile, median, 75th percentile and the mean
+% Input:         {q_freq} Initial frequency of resistant alleles
+%                {Pref} Proportion of area that is refuge (no Bt)
+%                {WErr_ref} Fitness of RR in refuge with natural enemies
+%                {WErs_ref} Fitness of RS in refuge with natural enemies
+%                {WEss_ref} Fitness of SS in refuge with natural enemies
+%                {gen_num} Number of generation that model runs
+% Output:        {gen2thresh_25percentile} 25th percentile number of 
+%                generations to resistance threshold
+%                {gen2thresh_50percentile} median number of generations to 
+%                resistance threshold
+%                {gen2thresh_75percentile} 75th percentile number of 
+%                generations to resistance threshold
+%                {gen2thresh_mean} mean number of generations to 
+%                resistance threshold
+% Adrian Semmelink
+% Classification: Honours project
+% Last revision date: 15-April-2015
+
+%% INITIALIZE
+gen2thresh = zeros(1, 100);
+q_matrix = [];
+final_qs=[];
+times_crashed = [];
+
+%% CALCULATIONS
+% Runs 100 simulations of stochastic model
+for nn = 1:100
+        [generations2thresh] = Stochastic_(q_freq,Pref, K, WErr_ref,...
+            WErs_ref, WEss_ref, WErr_toxic, WErs_toxic, WEss_toxic, ...
+            gen_num);
+        
+        % Saves the number of generations to threshold for each simulation
+        gen2thresh(nn) = generations2thresh;
+        
+        % Creates a matrix with all R allele frequencies across the 
+        % maximum number of generations for all 100 simulations
+        %q_matrix(nn, 1:gen_num) = q_array;
+        
+        % Saves the R allele frequency in the last generation (5000) into
+        % an array for all 100 simulations
+        %final_qs = [final_qs, q_array(gen_num)];
+        
+        % Calculate times crashed per simulation
+        %repeats = diff(q_array);
+        %q_log = logical([1, repeats]);
+        %q_noreps = q_array(q_log);
+        %sum_zeros = length(q_noreps(q_noreps==0));
+        %times_crashed = [times_crashed, sum_zeros];       
+end
+% Calculate number of runs (out of 100) that do not reach resistance
+% threshold
+runs_below_thresh = sum(isnan(gen2thresh)); 
+display(runs_below_thresh)
+
+% Remove NaNs from gen2thresh
+gen2thresh_NoNaNs = gen2thresh(isfinite(gen2thresh)); 
+
+% Calculates 25th percentile number of generations to resistance threshold
+gen2thresh_25percentile = prctile(gen2thresh_NoNaNs, 25); 
+
+% Calculates median number of generations to resistance threshold
+gen2thresh_50percentile = prctile(gen2thresh_NoNaNs, 50); 
+
+% Calculates 75th percentile number of generations to resistance threshold
+gen2thresh_75percentile = prctile(gen2thresh_NoNaNs, 75); 
+
+% Calculates mean number of generations to resistance threshold 
+gen2thresh_mean = mean(gen2thresh_NoNaNs); 
+
+%% Display outputs - not used in comparison runs
+% Make histogram for final R frequency and number of times crashed - not
+% used in comparison runs
+% figure
+% hist(final_qs)
+% xlabel('Proportion of resistant alleles at 500 generations');
+% ylabel('Frequency');
+
+% figure
+% hist(times_crashed/100)
+% xlabel
+% ylabel('Frequency');
+
+                

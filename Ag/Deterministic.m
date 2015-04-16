@@ -1,120 +1,117 @@
-function [q_freq, q_fixation] = Deterministic(q_freq, Pref, WErr_ref, WErs_ref, WEss_ref, gen_num)
-
-% Deterministic_4Feb simulates pesticide resistance starting with relatively large
-% pop and large 
+function [q_freq, gen2thresh] = Deterministic_13March(q_freq, Pref, ...
+    WErr_ref, WErs_ref, WEss_ref, WErr_toxic, WErs_toxic, WEss_toxic, ...
+    gen_num)
+% Deterministic_13March genetic model simulating insecticide resistance 
 % ------------------------------------------------------
-% function [q_freq, population] = Deterministic_20Feb(q_freq, Pref, Wxrr_ref, Wxrs_ref, Wxss_ref, gen_num)
+% function [q_freq, q_fixation] = Deterministic_13March(q_freq, Pref, ...
+%                                 WErr_ref, WErs_ref,WErr_toxic, ...
+%                                 WErs_toxic, WEss_toxic, WEss_ref,...
+%                                 gen_num)
 % ------------------------------------------------------
-% Description: This function is meant to include random pop fluctuations in
-%              small initial frequencies of a mutant allele, with selection 
-%              from various sources
+% Description: Model simulating pest inseciticide resistance assuming an 
+%              infinite pest population, Hardy-weinberg, with selection
+%              from natural enemies and other sources
 % Input:       {q_freq} 
-%              {Pref} proportion of land in refuge (no pesticide/bt)
-%              {WErr_ref} fitness of RR in refuge w/o natural enemies
-%              {WErs_ref} fitness of RS in refuge w/o natural enemies
-%              {WEss_ref} fitness of SS in refuge w/o natural enemies
-%              {gen_num} number of generations to model to run for
-% Output:      {q_freq} frequency of resistant alleles
-%              a plot
-%
+%              {Pref} Proportion of land in refuge (no pesticide/bt)
+%              {WErr_ref} Fitness of RR in refuge with natural enemies
+%              {WErs_ref} Fitness of RS in refuge with natural enemies
+%              {WEss_ref} Fitness of SS in refuge with natural enemies
+%              {WErr_toxic} Fitness of RR in refuge with natural enemies
+%              {WErs_toxic} Fitness of RS in refuge with natural enemies
+%              {WEss_toxic} Fitness of SS in refuge with natural enemies
+%              {gen_num} Number of generations to model to run for
+% Output:      {q_freq} Frequency of resistant alleles (not used in all
+%              runs)
+%              {gen2thresh} Number of generations to resistance threshold
 % Adrian Semmelink
-% Classification: honours project
+% Classification: Honours project
 % Last revision date: 20-Feb-2015
 
 %% INITIALIZE
-%q_freq = 0.00001;                      % initial frequency of R allele
-p_freq = 1 - q_freq;                  % initial frequency of S allele
-Wxrr_bt = 1;                        % fitness of RR in field w/o natural enemies
-Wxss_bt = 0;                          % fitness of SS in field w/o natural enemies
-Wxrs_bt = 0;                          % fitness of RS in field w/o natural enemies
-WErr_bt = 1;                          % fitness of RR in field due to natural enemies
-WErs_bt = 1;                          % fitness of RS in field due to natural enemies
-WEss_bt = 1;                          % fitness of SS in field due to natural enemies
-%WErr_ref = 1;                         % fitness of RR in refuge due to natural enemies
-%WErs_ref = 1;                         % fitness of RS in refuge due to natural enemies
-%WEss_ref = 1;                         % fitness of SS in refuge due to natural enemies
-Wxrr_ref = 0.207;                      % fitness of RR in refuge w/o natural enemies
-Wxrs_ref = 0.207;                      % fitness of RS in refuge w/o natural enemies
-Wxss_ref = 0.207;                      % fitness of SS in refuge w/o natural enemies
+p_freq = 1 - q_freq;                  % Initial frequency of S allele
+Wxrr_toxic = 0.207;                   % Fitness of RR in field w/o natural enemies
+Wxss_toxic = 0;                       % Fitness of SS in field w/o natural enemies
+Wxrs_toxic = 0;                       % Fitness of RS in field w/o natural enemies
+Wxrr_ref = 0.207;                     % Fitness of RR in refuge w/o natural enemies
+Wxrs_ref = 0.207;                     % Fitness of RS in refuge w/o natural enemies
+Wxss_ref = 0.208;                     % Fitness of SS in refuge w/o natural enemies
+Ptoxic = 1-Pref;                      % Proportion of total field that is toxic
+gen2thresh = 0;                       % Generation when q_freq is larger than 0.1
+MutationR = 0.00005;                  % Mutation rate of R to S or S to R 
+i = 0;                                % Initialize generation count
+q_threshold = 0.1;                    % q frequency at which program stops
 
-RR = 0;                               % RR genotype frequency total              
-RS = 0;                               % RS genotype frequency total
-SS = 0;                               % SS genotype frequency total
-RRref = 0;                            % RR genotype frequency refuge             
-RSref = 0;                            % RS genotype frequency refuge
-SSref = 0;                            % SS genotype frequency refuge
-RRbt = 0;                             % RR genotype frequency Bt               
-RSbt = 0;                             % RS genotype frequency Bt
-SSbt = 0;                             % SS genotype frequency Bt
-%Pref = 0.1;                           % Proportion of total field that is refuge
-Pbt = 1-Pref;                         % Proportion of total field that is Bt
-q_fixation = 0;
-
-i = 0;                                % initialize generation count
 %% OUTPUT
 p_array=[];
 q_array=[];
 
 %% CALCULATIONS
-
-while i <= gen_num;       %<= 100000                  % while frequency of R allele less than 0.5 (dominant resistance) calculate the following
-    i = i+1;                      % Count generations
+while i <= gen_num;         % while generations less than gen_num run loop      
+    % Count generations
+    i = i+1;                      
     
-    %Mating Hardy-Weinberg - assume random mating - take the proportions of the allele and output
-    %frequencies of three genotypes
+    % Apply mutation rate 
+    q_freq = q_freq + p_freq*MutationR;
+    p_freq = p_freq + q_freq*MutationR;
+    
+    % Hardy-weinberg ratios applied to find expected relative frequency  
     RR = q_freq^2;
     SS = p_freq^2;
     RS = 2*q_freq*p_freq;
     
-    %Oviposition assume random
+    % Oviposition distribution across field according to proportion
+    % of toxic and refuge zones
     RRref = RR*Pref;
     SSref = SS*Pref;
     RSref = RS*Pref;
-    RRbt = RR*Pbt;
-    SSbt = SS*Pbt;
-    RSbt = RS*Pbt;
+    RRtoxic = RR*Ptoxic;
+    SStoxic = SS*Ptoxic;
+    RStoxic = RS*Ptoxic;
     
-    %Selection - fitness w/o natural enemies
+    % Selection - fitness without natural enemies
     RRref = RRref*Wxrr_ref;
     SSref = SSref*Wxss_ref;
     RSref = RSref*Wxrs_ref;
-    RRbt = RRbt*Wxrr_bt;
-    SSbt = SSbt*Wxss_bt;
-    RSbt = RSbt*Wxrs_bt;
+    RRtoxic = RRtoxic*Wxrr_toxic;
+    SStoxic = SStoxic*Wxss_toxic;
+    RStoxic = RStoxic*Wxrs_toxic;
     
-    %Selection with natural enemies
+    % Selection by natural enemies
     RRref = RRref*WErr_ref;
     SSref = SSref*WEss_ref;
     RSref = RSref*WErs_ref;
-    RRbt = RRbt*WErr_bt;
-    SSbt = SSbt*WEss_bt;
-    RSbt = RSbt*WErs_bt;
+    RRtoxic = RRtoxic*WErr_toxic;
+    SStoxic = SStoxic*WEss_toxic;
+    RStoxic = RStoxic*WErs_toxic;
     
     % Finding p and q 
-    q_sum = 2*RRref + RSref + 2*RRbt + RSbt;
-    p_sum = 2*SSref + RSref + 2*SSbt + RSbt;
+    q_sum = 2*RRref + RSref + 2*RRtoxic + RStoxic;
+    p_sum = 2*SSref + RSref + 2*SStoxic + RStoxic;
     
     q_freq = q_sum/(q_sum+p_sum);
     p_freq = p_sum/(p_sum+q_sum);
     
-    % displaying generation at which fixation occurs
-    if  q_freq >= 0.1 && q_fixation == 0;
-        q_fixation = i;
+    % Displaying generation at which fixation occurs
+    if  q_freq >= q_threshold && gen2thresh == 0;
+        gen2thresh = i;
     end
     
-    
-    %saving our fequencies
+    % Saving fequencies for plots (not used in all simulations)
     q_array = [q_array, q_freq];
     p_array = [p_array, p_freq];
     
 end
 
-display(q_fixation)
-gens = 1:length(q_array);
-figure
-plot(gens, q_array, gens, p_array)
-xlabel('generations');
-ylabel('frequency');
-legend('q', 'p');
+% If no resistance developed by the end of the run the number of
+% generations to threshold is recorded as NaN
+if q_freq <= q_threshold;
+    gen2thresh = NaN;
+end
 
-%display('i', 'output');
+%% Display outputs - not used in comparison runs
+% gens = 1:length(q_array);
+% figure
+% plot(gens, q_array, gens, p_array)
+% xlabel('generations', 'FontSize', 12);
+% ylabel('frequency', 'FontSize', 12);
+%legend('q', 'p');
