@@ -1,11 +1,10 @@
-function [generations2thresh, q_array] = Stochastic_Model(q_freq, Pref, K, ...
+function [generations2thresh, q_array] = Stochastic(q_freq, Pref, K, ...
     WErr_ref, WErs_ref, WEss_ref, WErr_toxic, WErs_toxic, WEss_toxic,...
    gen_num)
-% Stochastic_Model simulates insecticide resistance starting 
+% Stochastic simulates insecticide resistance starting 
 % ------------------------------------------------------
-% [q_fix_percentileA, q_fix_percentileB, q_fix_percentileC, q_fix_mean]...
-%  = stochastic_10March(q_freq, Pref, WErr_ref, WErs_ref, WEss_ref,...
-%  WErr_toxic, WErs_toxic, WEss_toxic, gen_num, sim_num)
+% [generations2thresh, q_array] = Stochastic(q_freq, Pref, K, WErr_ref,...
+%  WErs_ref, WEss_ref, WErr_toxic,WErs_toxic, WEss_toxic,gen_num)
 % ------------------------------------------------------
 % Description: Model insecticie resistance in a finite population, 
 %              panmictic mating, with selection from various sources,
@@ -20,15 +19,17 @@ function [generations2thresh, q_array] = Stochastic_Model(q_freq, Pref, K, ...
 %              {WEss_toxic} Fitness of SS in field due to natural enemies
 %              {gen_num} number of generation that model runs
 % Output:      {generations2thresh} Generation when q_freq is larger than 0.1
+%              {q_array} array of resistant allele frequencies over number
+%              of generations
 
 % Adrian Semmelink
-% Classification: Honours project
-% Last revision date: 15-April-2015
+% Classification: Insecticide resistance project
+% Last revision date: 21-July-2015
 
 %% Initialize
-population = 290;                     % Initial pest population  
+population = 2900;                     % Initial pest population  
 p_freq = 1 - q_freq;                  % Initial frequency of S allele
-progeny = 69;                         % Number of progeny produced per female 
+progeny = 236;                         % Number of progeny produced per female 
 Wxrr_toxic = 0.207;                   % Fitness of RR in field w/o natural enemies
 Wxss_toxic = 0;                       % Fitness of SS in field w/o natural enemies
 Wxrs_toxic = 0;                       % Fitness of RS in field w/o natural enemies
@@ -39,6 +40,7 @@ MutationR = 0.00005;                  % Mutation rate of R to S or S to R (Siste
 i = 0;                                % Initialize generation count
 q_threshold= 0.1;                     % q frequency at which program stops 
 generations2thresh = 0;               % Initialize number of generations to threshold
+intrinsicR = 0.15;                     % Intrinsic growth rate (Gryspeit, 2012)
 
 %% OUTPUT
 p_array=[];
@@ -46,26 +48,19 @@ q_array=[];
 pop_array = [];
 
 %% CALCULATIONS
-% Find intrinsic growth rate by running get_rmax function 
-r_arr = get_rmax(q_freq, Pref,population, p_freq, progeny, Wxrr_ref,...
-    Wxrs_ref, Wxss_ref, MutationR);
-% Find the intrinsic growth rate by averaging the growth rate over a number
-% of generations calculated with get_rmax
-intrinsicR = mean(r_arr);
-
 % Calculate number of generations for loop
 gen_number = gen_num - 1;
 
 % Run stochastic model
 while i <= gen_number 
     i = i+1;                      % Count generations
+    %%% STEP 1: Calculate proportions of adults by genotype and sex
     % Round population each loop to convert into whole number
     population = round(population);
 
     % Mutation rate applied
     q_freq = q_freq + poissrnd(p_freq*MutationR, 1);
-    p_freq = p_freq;
-
+    p_freq = p_freq; + poissrnd(q_freq*MutationR, 1);
 
     % Determine proportion of males and females by applying binomial 
     % distribution to choose number of females, assume remainder males 
@@ -139,6 +134,7 @@ while i <= gen_number
     SSxRS = FemSSxMaleRS + FemRSxMaleSS;
     RSxRS = FemRSxMaleRS;
 
+    %%% STEP 2: Find number of progeny produced by each genotype
     % For each pairing type find number of progeny   
     RRxRR_progeny = round(RRxRR*progeny);
     RRxRS_progeny = round(RRxRS*progeny);
@@ -176,6 +172,7 @@ while i <= gen_number
     tot_progeny_RS = RRxRS_progeny_RS + RRxSS_progeny_RS + SSxRS_progeny_RS + RSxRS_progeny_RS;
     tot_progeny_SS = SSxSS_progeny_SS + SSxRS_progeny_SS + RSxRS_progeny_SS;
 
+    %%% STEP 3: Dvide progeny by zone
     % Dividing progeny across toxic and refuge zone 
     RRref = binornd(tot_progeny_RR, Pref);
     SSref = binornd(tot_progeny_SS, Pref);
@@ -184,15 +181,32 @@ while i <= gen_number
     SStoxic = tot_progeny_SS - SSref;
     RStoxic = tot_progeny_RS - RSref;  
 
-    % Selection - fitness without natural enemies 
-    RRref_x = RRref*Wxrr_ref;
-    SSref_x = SSref*Wxss_ref;
+    %%% STEP 4: Selection by zones
+    % Selection not due to natural enemies 
+    %RRref_x = binornd(RRref, Wxrr_ref);
+    %RSref_x = binornd(RSref, Wxrs_ref);
+    %SSref_x = binornd(SSref, Wxss_ref);
+    %RRbt_x = binornd(RRtoxic, Wxrr_toxic);
+    %SSbt_x = binornd(SStoxic, Wxss_toxic);
+    %RSbt_x = binornd(RStoxic,Wxrs_toxic);
+
+    % Selection due to natural enemies 
+    %RRref = binornd(RRref_x,WErr_ref);
+    %SSref = binornd(SSref_x,WEss_ref);
+    %RSref = binornd(RSref_x,WErs_ref);
+    %RRtoxic = binornd(RRbt_x,WErr_toxic);
+    %SStoxic = binornd(SSbt_x,WEss_toxic);
+    %RStoxic = binornd(RSbt_x,WErs_toxic);
+    
+     % Selection - fitness not due to natural enemies 
+    RRref_x = RRref* Wxrr_ref;
     RSref_x = RSref*Wxrs_ref;
+    SSref_x = SSref*Wxss_ref;
     RRbt_x = RRtoxic*Wxrr_toxic;
     SSbt_x = SStoxic*Wxss_toxic;
     RSbt_x = RStoxic*Wxrs_toxic;
 
-    %Selection due to natural enemies 
+    % Selection due to natural enemies 
     RRref = RRref_x*WErr_ref;
     SSref = SSref_x*WEss_ref;
     RSref = RSref_x*WErs_ref;
@@ -207,14 +221,11 @@ while i <= gen_number
 
     % Calculate new population 
     N_new = RR + RS + SS;
-
-    % Create new variable lambda 
-    Lambda = intrinsicR - 1;
     
     % Calculate population if change in population only followed
     % logistic growth (include density dependent mortality from carrying
     % capacity and intrinsic growth rate)
-    N_logistic = population + Lambda * population * (1 - population/K);
+    N_logistic = population + intrinsicR * population * (1 - population/K);
 
     % Recalculate new population including density dependent effects
     % leaving population below carrying capacity at the same proportions of
@@ -222,7 +233,8 @@ while i <= gen_number
     RR = RR*(N_logistic/N_new);
     RS = RS*(N_logistic/N_new);
     SS = SS*(N_logistic/N_new);   
-
+    
+    %%% STEP 5: Calculate frequency of resistant and suceptible alleles
     % Find number of each allele after all selection stages
     q_sum = 2*RR + RS;
     p_sum = 2*SS + RS;
@@ -246,15 +258,7 @@ end
 % generations to threshold is recorded as the number of generations
 % simulated
 if q_freq <= q_threshold;
-    generations2thresh = NaN;
+    generations2thresh = gen_num;
 end
-
-% Example plot of how q_array changes over time to show where initial and
-% spread stage end/begin
-%figure
-%x = generations2thresh - 1;
-%plot(1:x,q_array)
-%xlabel('Frequency of resistant allele (R)')
-%ylabel('Generations')
 
 
