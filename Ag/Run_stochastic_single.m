@@ -20,7 +20,7 @@
 % gen_num ----> Number of generations 
 
 %% INPUTS
-num_runs = 10;
+num_runs = 5000;
 
 %% INITIALIZE
 q_freq_arr = zeros(1,num_runs);
@@ -34,7 +34,14 @@ for nn=1:num_runs                                        % number of trials
     gen2thresh_arr(nn) = generation2thresh;
 end
 
-%% Plot histogram of generations to threshold of multiple runs
+%% Generate histogram of generations to threshold of multiple runs
 hist(gen2thresh_arr)
+
+% Calculate mean, median, and standard deviation
+gen2thresh_mean = mean(gen2thresh_arr);
+gen2thresh_median = median(gen2thresh_arr);
+gen2thresh_std = std(gen2thresh_arr);
+
+
 
 
