@@ -11,6 +11,7 @@ function [generations2thresh, q_array] = Stochastic(q_freq, Pref, K, ...
 %              and density dependent effects
 % Input:       {q_freq} initial frequency of resistant alleles
 %              {Pref} proportion of area that is refuge (no Bt)
+%              {K} carrying capacity
 %              {WErr_ref} fitness of RR in refuge with natural enemies
 %              {WErs_ref} fitness of RS in refuge with natural enemies
 %              {WEss_ref} fitness of SS in refuge with natural enemies
@@ -59,17 +60,21 @@ while i <= gen_number
     population = round(population);
 
     % Mutation rate applied
-    q_freq = q_freq + poissrnd(p_freq*MutationR, 1);
-    p_freq = p_freq; + poissrnd(q_freq*MutationR, 1);
+    q_freq = q_freq + (p_freq*MutationR);
+    p_freq = p_freq + (q_freq*MutationR);
 
     % Determine proportion of males and females by applying binomial 
     % distribution to choose number of females, assume remainder males 
-    Fem = binornd(population,0.5,1);
-    Male = population - Fem;
+    %Fem = binornd(population,0.5,1);
+    %Male = population - Fem;
 
+    % Calculate proportion of males and females by dividing in half
+    Fem = population*0.5;
+    Male = population - Fem;
+    
     % Hardy-weinberg ratios applied to find expected relative frequency  
     SS = p_freq^2;
-    RS = 2*q_freq*p_freq;
+    RS = 2*(q_freq*p_freq);
     RR = q_freq^2;
 
     % If error statement to check that RR/RS/SS total 1
@@ -172,15 +177,22 @@ while i <= gen_number
     tot_progeny_RS = RRxRS_progeny_RS + RRxSS_progeny_RS + SSxRS_progeny_RS + RSxRS_progeny_RS;
     tot_progeny_SS = SSxSS_progeny_SS + SSxRS_progeny_SS + RSxRS_progeny_SS;
 
-    %%% STEP 3: Dvide progeny by zone
+    %%% STEP 3: Divide progeny by zone
     % Dividing progeny across toxic and refuge zone 
-    RRref = binornd(tot_progeny_RR, Pref);
-    SSref = binornd(tot_progeny_SS, Pref);
-    RSref = binornd(tot_progeny_RS, Pref);
+    %RRref = binornd(tot_progeny_RR, Pref);
+    %SSref = binornd(tot_progeny_SS, Pref);
+    %RSref = binornd(tot_progeny_RS, Pref);
+    %RRtoxic = tot_progeny_RR - RRref;
+    %SStoxic = tot_progeny_SS - SSref;
+    %RStoxic = tot_progeny_RS - RSref;  
+
+    RRref = tot_progeny_RR*Pref;
+    SSref = tot_progeny_SS*Pref;
+    RSref = tot_progeny_RS*Pref;
     RRtoxic = tot_progeny_RR - RRref;
     SStoxic = tot_progeny_SS - SSref;
-    RStoxic = tot_progeny_RS - RSref;  
-
+    RStoxic = tot_progeny_RS - RSref; 
+    
     %%% STEP 4: Selection by zones
     % Selection not due to natural enemies 
     %RRref_x = binornd(RRref, Wxrr_ref);
@@ -198,7 +210,7 @@ while i <= gen_number
     %SStoxic = binornd(SSbt_x,WEss_toxic);
     %RStoxic = binornd(RSbt_x,WErs_toxic);
     
-     % Selection - fitness not due to natural enemies 
+    % Selection - fitness not due to natural enemies 
     RRref_x = RRref* Wxrr_ref;
     RSref_x = RSref*Wxrs_ref;
     SSref_x = SSref*Wxss_ref;
