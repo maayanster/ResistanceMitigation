@@ -1,7 +1,6 @@
-function[gen2thresh_25percentile, gen2thresh_50percentile, ...
-    gen2thresh_75percentile, gen2thresh_mean, runs_below_thresh, times_crashed] = Stochastic_Runs...
+function[gen2thresh_arr, runs_below_thresh, times_crashed_arr] = Stochastic_Runs...
     (q_freq, Pref, K, WErr_ref, WErs_ref, WEss_ref,WErr_toxic, WErs_toxic, ...
-    WEss_toxic, gen_num)
+    WEss_toxic, gen_num, num_sim)
 % Stochastic_Runs runs stochastic insecticide resistance model 
 % -------------------------------------------------------------------
 % [q_fix_percentileA, q_fix_percentileB, q_fix_percentileC, q_fix_mean] = 
@@ -31,67 +30,69 @@ function[gen2thresh_25percentile, gen2thresh_50percentile, ...
 % Last revision date: 15-April-2015
 
 %% INITIALIZE
-gen2thresh = zeros(1, 100);
-q_matrix = [];
+gen2thresh_arr = zeros(1, num_sim);
+q_cell = {};
 final_qs=[];
-times_crashed = [];
+times_crashed_arr = [];
 
 %% CALCULATIONS
 % Runs 100 simulations of stochastic model
-for nn = 1:100
-        [generations2thresh] = Stochastic_Model(q_freq,Pref, K, WErr_ref,...
+for nn = 1:num_sim
+        [generations2thresh, q_arr] = Stochastic(q_freq,Pref, K, WErr_ref,...
             WErs_ref, WEss_ref, WErr_toxic, WErs_toxic, WEss_toxic, ...
             gen_num);
         
         % Saves the number of generations to threshold for each simulation
-        gen2thresh(nn) = generations2thresh;
+        gen2thresh_arr(nn) = generations2thresh;
         
-        % Creates a matrix with all R allele frequencies across the 
-        % maximum number of generations for all 100 simulations
-        %q_matrix(nn, 1:gen_num) = q_array;
+       % Creates a matrix with all R allele frequencies across the 
+       % maximum number of generations for all 100 simulations
+        q_cell{nn} = q_arr;
+        final_qs(nn) = q_arr(end);
         
-        % Saves the R allele frequency in the last generation (5000) into
-        % an array for all 100 simulations
-        %final_qs = [final_qs, q_array(gen_num)];
-        
-        % Calculate times crashed per simulation
-        %repeats = diff(q_array);
-        %q_log = logical([1, repeats]);
-        %q_noreps = q_array(q_log);
-        %sum_zeros = length(q_noreps(q_noreps==0));
-        %times_crashed = [times_crashed, sum_zeros];       
+        % Calculate times the R pop'n crashed to nothing per simulation
+        repeats = diff(q_arr);
+        q_log = logical([1, repeats]);
+        q_noreps = q_arr(q_log);
+        sum_zeros = length(q_noreps(q_noreps==0));
+        times_crashed_arr = [times_crashed_arr, sum_zeros];       
 end
+
+fprintf('\nNumber of simulation in batch: %d\n',num_sim);
 % Calculate number of runs (out of 100) that do not reach resistance
 % threshold
-runs_below_thresh = sum(isnan(gen2thresh)); 
-display(runs_below_thresh)
+runs_below_thresh = sum(isnan(gen2thresh_arr)); 
+fprintf('Runs below threshold: %d\n', runs_below_thresh);
 
 % Remove NaNs from gen2thresh
-gen2thresh_NoNaNs = gen2thresh(isfinite(gen2thresh)); 
+gen2thresh_NoNaNs = gen2thresh_arr(isfinite(gen2thresh_arr)); 
 
-% Calculates 25th percentile number of generations to resistance threshold
+% Calculates 25th, median, 75th, percentile, and mean for number of generations to resistance threshold
 gen2thresh_25percentile = prctile(gen2thresh_NoNaNs, 25); 
-
-% Calculates median number of generations to resistance threshold
 gen2thresh_50percentile = prctile(gen2thresh_NoNaNs, 50); 
-
-% Calculates 75th percentile number of generations to resistance threshold
 gen2thresh_75percentile = prctile(gen2thresh_NoNaNs, 75); 
-
-% Calculates mean number of generations to resistance threshold 
+gen2thresh_st_dev = std(gen2thresh_NoNaNs);
 gen2thresh_mean = mean(gen2thresh_NoNaNs); 
 
 %% Display outputs - not used in comparison runs
-% Make histogram for final R frequency and number of times crashed - not
-% used in comparison runs
-% figure
-% hist(final_qs)
-% xlabel('Proportion of resistant alleles at 500 generations');
-% ylabel('Frequency');
+fprintf('Median generations to threshold: %d\n25th and 75th percentile generations to threshold: %d, %d\nStandard dev generations to threshold: %d\nMean generations to threshold %d\n\n', ...
+    gen2thresh_50percentile,gen2thresh_25percentile,gen2thresh_75percentile,gen2thresh_st_dev,gen2thresh_mean);
 
-% figure
-% hist(times_crashed/100)
-% xlabel
-% ylabel('Frequency');
+% Make histograms for final R frequency, generations to threshold and
+% number of times q crashed to 0 per run
 
+figure
+hist(final_qs)
+xlabel(sprintf('Proportion of resistant alleles at %d generations', gen_num));
+ylabel('number of simulations');
+
+figure
+hist(times_crashed_arr)
+xlabel('times R alleles crash to 0 per sim')
+ylabel('number of simulations');
+
+figure
+hist(gen2thresh_arr)
+xlabel ('generations to threshold')
+ylabel ('number of simulations')
                 

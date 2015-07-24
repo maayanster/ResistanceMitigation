@@ -69,7 +69,7 @@ while i <= gen_number
     %Male = population - Fem;
 
     % Calculate proportion of males and females by dividing in half
-    Fem = population*0.5;
+    Fem = floor(population*0.5);
     Male = population - Fem;
     
     % Hardy-weinberg ratios applied to find expected relative frequency  
@@ -82,7 +82,8 @@ while i <= gen_number
         error('RR+RS+SS do not equal 1');
     end
 
-    % Sample the number of individuals from each genotype in this generation
+    %{
+ Sample the number of individuals from each genotype in this generation
     % using poisson distribution - sampling "small" genotypes first
     MaleRR = poissrnd(RR*Male, 1);    
     FemRR = poissrnd(RR*Fem, 1);
@@ -99,6 +100,14 @@ while i <= gen_number
     if (FemRS + FemRR) > Fem
         FemSS = 0;
     end
+    %}
+
+    MaleRR = round(RR*Male);    
+    FemRR = round(RR*Fem);
+    MaleRS = round(RS*Male);
+    FemRS = round(RS*Fem);
+    MaleSS = round(SS*Male);
+    FemSS = round(SS*Fem);
 
     %%% Calculate pairings between genotypes
     % Tracking Female RR genotype    
@@ -140,37 +149,63 @@ while i <= gen_number
     RSxRS = FemRSxMaleRS;
 
     %%% STEP 2: Find number of progeny produced by each genotype
-    % For each pairing type find number of progeny   
-    RRxRR_progeny = round(RRxRR*progeny);
-    RRxRS_progeny = round(RRxRS*progeny);
-    RRxSS_progeny = round(RRxSS*progeny);
-    SSxSS_progeny = round(SSxSS*progeny);
-    SSxRS_progeny = round(SSxRS*progeny);
-    RSxRS_progeny = round(RSxRS*progeny);
+    %{For each pairing type find number of progeny   
+   % RRxRR_progeny = round(RRxRR*progeny);
+  %  RRxRS_progeny = round(RRxRS*progeny);
+    %RRxSS_progeny = round(RRxSS*progeny);
+    %SSxSS_progeny = round(SSxSS*progeny);
+   % SSxRS_progeny = round(SSxRS*progeny);
+  %  RSxRS_progeny = round(RSxRS*progeny);
+  
 
-    %%% For each type of pairing assigning number of progeny for each
+    %For each type of pairing assigning number of progeny for each
     % genotype (birth rate per pairing)
+   
     % Find number of RR progeny produced by RRxRR pairing
-    RRxRR_progeny_RR = RRxRR_progeny;
-
-    % Find number of RR and RS progeny produced by RRxRS pairing
-    RRxRS_progeny_RR = binornd(RRxRS_progeny, 0.5);
-    RRxRS_progeny_RS = RRxRS_progeny - RRxRS_progeny_RR;
-
+    RRxRR_progeny_RR = round(RRxRR*progeny);
+    
     % Find number of RS progeny produced by RRxSS pairing
-    RRxSS_progeny_RS = RRxSS_progeny;
+    RRxSS_progeny_RS = round(RRxSS*progeny);
 
     % Find number of SS progeny produced by SSxSS pairing
-    SSxSS_progeny_SS = SSxSS_progeny;
+    SSxSS_progeny_SS = round(SSxSS*progeny);
 
+    % Find number of RR and RS progeny produced by RRxRS pairing
+    RRxRS_progeny_RR = 0;
+    RRxRS_progeny_RS = 0;
+    for jj=1:RRxRS
+        progeny_RR = round(binornd(progeny, 0.5));
+        progeny_RS = progeny - progeny_RR;
+        
+        RRxRS_progeny_RR = RRxRS_progeny_RR + progeny_RR;
+        RRxRS_progeny_RS = RRxRS_progeny_RS + progeny_RS;
+    end
+    
     % Find number of SS and RS progeny produced by SSxRS pairing
-    SSxRS_progeny_RS = binornd(SSxRS_progeny, 0.5);
-    SSxRS_progeny_SS = SSxRS_progeny - SSxRS_progeny_RS;
-
+    SSxRS_progeny_SS = 0;
+    SSxRS_progeny_RS = 0;
+    for jj=1:SSxRS
+        progeny_SS = round(binornd(progeny, 0.5));
+        progeny_RS = progeny - progeny_SS;
+        
+        SSxRS_progeny_SS = SSxRS_progeny_SS + progeny_SS;
+        SSxRS_progeny_RS = SSxRS_progeny_RS + progeny_RS;
+    end
+    
     % Find number of SS, RS, and RR progeny produced by RSxRS pairing
-    RSxRS_progeny_SS = binornd(RSxRS_progeny, 0.25);
-    RSxRS_progeny_RR = binornd(RSxRS_progeny, 0.25);
-    RSxRS_progeny_RS = RSxRS_progeny - (RSxRS_progeny_SS+RSxRS_progeny_RR);
+    RSxRS_progeny_RR = 0;
+    RSxRS_progeny_SS = 0;
+    RSxRS_progeny_RS = 0;
+    
+    for jj=1:RSxRS
+        progeny_RR = round(binornd(progeny, 0.25));
+        progeny_SS = round(binornd(progeny, 0.25));
+        progeny_RS = progeny - progeny_SS - progeny_RR;
+        
+        RSxRS_progeny_RR = RSxRS_progeny_RR + progeny_RR;
+        RSxRS_progeny_SS = RSxRS_progeny_SS + progeny_SS;
+        RSxRS_progeny_RS = RSxRS_progeny_RS + progeny_RS;
+    end
 
     % Find total amount of progeny for RR, SS, and RS
     tot_progeny_RR = RRxRR_progeny_RR + RRxRS_progeny_RR + RSxRS_progeny_RR;
