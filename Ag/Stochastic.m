@@ -279,7 +279,10 @@ while i <= gen_number
     % RR, RS, and SS genotypes
     RR = RR*(N_logistic/N_new);
     RS = RS*(N_logistic/N_new);
-    SS = SS*(N_logistic/N_new);   
+    SS = SS*(N_logistic/N_new); 
+    
+    % Calculate total population
+    population = RR+RS+SS;
     
     %%% STEP 5: Calculate frequency of resistant and suceptible alleles
     % Find number of each allele after all selection stages
