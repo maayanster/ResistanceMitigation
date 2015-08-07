@@ -144,27 +144,20 @@ while i <= gen_number
     SSxRS = FemSSxMaleRS + FemRSxMaleSS;
     RSxRS = FemRSxMaleRS;
 
-    %%% STEP 2: Find number of progeny produced by each genotype
-    %{For each pairing type find number of progeny   
-   % RRxRR_progeny = round(RRxRR*progeny);
-  %  RRxRS_progeny = round(RRxRS*progeny);
-    %RRxSS_progeny = round(RRxSS*progeny);
-    %SSxSS_progeny = round(SSxSS*progeny);
-   % SSxRS_progeny = round(SSxRS*progeny);
-  %  RSxRS_progeny = round(RSxRS*progeny);
-  
-
-    %For each type of pairing assigning number of progeny for each
-    % genotype (birth rate per pairing)
+    %%% STEP 2: For each type of pairing assigning random number of progeny
+    % for each genotype (birth rate per pairing)
    
     % Find number of RR progeny produced by RRxRR pairing
     RRxRR_progeny_RR = round(RRxRR*progeny);
+    RRxRR_progeny_RR_random = poissrnd(RRxRR_progeny_RR);
     
     % Find number of RS progeny produced by RRxSS pairing
     RRxSS_progeny_RS = round(RRxSS*progeny);
+    RRxSS_progeny_RS_random = poissrnd(RRxSS_progeny_RS);
 
     % Find number of SS progeny produced by SSxSS pairing
     SSxSS_progeny_SS = round(SSxSS*progeny);
+    SSxSS_progeny_SS_random = poissrnd(SSxSS_progeny_SS);
 
     % Find number of RR and RS progeny produced by RRxRS pairing
     RRxRS_progeny_RR = 0;
@@ -176,6 +169,8 @@ while i <= gen_number
         RRxRS_progeny_RR = RRxRS_progeny_RR + progeny_RR;
         RRxRS_progeny_RS = RRxRS_progeny_RS + progeny_RS;
     end
+    RRxRS_progeny_RR_random = poissrnd(RRxRS_progeny_RR);
+    RRxRS_progeny_RS_random = poissrnd(RRxRS_progeny_RS);
     
     % Find number of SS and RS progeny produced by SSxRS pairing
     SSxRS_progeny_SS = 0;
@@ -187,6 +182,8 @@ while i <= gen_number
         SSxRS_progeny_SS = SSxRS_progeny_SS + progeny_SS;
         SSxRS_progeny_RS = SSxRS_progeny_RS + progeny_RS;
     end
+    SSxRS_progeny_SS_random = poissrnd(SSxRS_progeny_SS);
+    SSxRS_progeny_RS_random = poissrnd(SSxRS_progeny_RS);
     
     % Find number of SS, RS, and RR progeny produced by RSxRS pairing
     RSxRS_progeny_RR = 0;
@@ -202,11 +199,14 @@ while i <= gen_number
         RSxRS_progeny_SS = RSxRS_progeny_SS + progeny_SS;
         RSxRS_progeny_RS = RSxRS_progeny_RS + progeny_RS;
     end
+    RSxRS_progeny_RR_random = poissrnd(RSxRS_progeny_RR);
+    RSxRS_progeny_SS_random = poissrnd(RSxRS_progeny_SS);
+    RSxRS_progeny_RS_random = poissrnd(RSxRS_progeny_RS);
 
     % Find total amount of progeny for RR, SS, and RS
-    tot_progeny_RR = RRxRR_progeny_RR + RRxRS_progeny_RR + RSxRS_progeny_RR;
-    tot_progeny_RS = RRxRS_progeny_RS + RRxSS_progeny_RS + SSxRS_progeny_RS + RSxRS_progeny_RS;
-    tot_progeny_SS = SSxSS_progeny_SS + SSxRS_progeny_SS + RSxRS_progeny_SS;
+    tot_progeny_RR = RRxRR_progeny_RR_random + RRxRS_progeny_RR_random + RSxRS_progeny_RR_random;
+    tot_progeny_RS = RRxRS_progeny_RS_random + RRxSS_progeny_RS_random + SSxRS_progeny_RS_random + RSxRS_progeny_RS_random;
+    tot_progeny_SS = SSxSS_progeny_SS_random + SSxRS_progeny_SS_random + RSxRS_progeny_SS_random;
 
     %%% STEP 3: Divide progeny by zone
     % Dividing progeny across toxic and refuge zone 
