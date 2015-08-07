@@ -65,11 +65,7 @@ while i <= gen_number
 
     % Determine proportion of males and females by applying binomial 
     % distribution to choose number of females, assume remainder males 
-    %Fem = binornd(population,0.5,1);
-    %Male = population - Fem;
-
-    % Calculate proportion of males and females by dividing in half
-    Fem = floor(population*0.5);
+    Fem = binornd(population,0.5,1);
     Male = population - Fem;
     
     % Hardy-weinberg ratios applied to find expected relative frequency  
