@@ -78,8 +78,8 @@ while i <= gen_number
         error('RR+RS+SS do not equal 1');
     end
 
-    %{
- Sample the number of individuals from each genotype in this generation
+ 
+    % Sample the number of individuals from each genotype in this generation
     % using poisson distribution - sampling "small" genotypes first
     MaleRR = poissrnd(RR*Male, 1);    
     FemRR = poissrnd(RR*Fem, 1);
@@ -96,7 +96,6 @@ while i <= gen_number
     if (FemRS + FemRR) > Fem
         FemSS = 0;
     end
-    %}
 
     MaleRR = round(RR*Male);    
     FemRR = round(RR*Fem);
@@ -160,48 +159,76 @@ while i <= gen_number
     SSxSS_progeny_SS_random = poissrnd(SSxSS_progeny_SS);
 
     % Find number of RR and RS progeny produced by RRxRS pairing
-    RRxRS_progeny_RR = 0;
-    RRxRS_progeny_RS = 0;
-    for jj=1:RRxRS
-        progeny_RR = round(binornd(progeny, 0.5));
-        progeny_RS = progeny - progeny_RR;
+    %RRxRS_progeny_RR = 0;
+    %RRxRS_progeny_RS = 0;
+    %for jj=1:RRxRS
+    %    progeny_RR = round(binornd(progeny, 0.5));
+    %    progeny_RS = progeny - progeny_RR;
         
-        RRxRS_progeny_RR = RRxRS_progeny_RR + progeny_RR;
-        RRxRS_progeny_RS = RRxRS_progeny_RS + progeny_RS;
-    end
-    RRxRS_progeny_RR_random = poissrnd(RRxRS_progeny_RR);
-    RRxRS_progeny_RS_random = poissrnd(RRxRS_progeny_RS);
+    %    RRxRS_progeny_RR = RRxRS_progeny_RR + progeny_RR;
+    %    RRxRS_progeny_RS = RRxRS_progeny_RS + progeny_RS;
+    %end
+    % Define mean number of progeny that would be RR
+    Probability_RR = 0.5;
+    % Create vectors of Probability and progeny with a length of RRxRS
+    Prob_arr_RRxRS = Probability_RR(:,ones(1,RRxRS));
+    RRxRS_progeny_arr = progeny(:,ones(1,RRxRS));
+    % Calculate 'mean' number of progeny produced by pairing by genotype
+    % and sum vectors of mean number of progeny by genotype
+    RRxRS_progeny_RR = round(binornd(RRxRS_progeny_arr, Prob_arr_RRxRS));
+    RRxRS_progeny_RS = RRxRS_progeny_arr - RRxRS_progeny_arr;
+    % Use mean number of progeny to calculate stochastic number of progeny
+    RRxRS_progeny_RR_random = sum(poissrnd(RRxRS_progeny_RR));
+    RRxRS_progeny_RS_random = sum(poissrnd(RRxRS_progeny_RS));
     
     % Find number of SS and RS progeny produced by SSxRS pairing
-    SSxRS_progeny_SS = 0;
-    SSxRS_progeny_RS = 0;
-    for jj=1:SSxRS
-        progeny_SS = round(binornd(progeny, 0.5));
-        progeny_RS = progeny - progeny_SS;
+    %SSxRS_progeny_SS = 0;
+    %SSxRS_progeny_RS = 0;
+    %for jj=1:SSxRS
+       % progeny_SS = round(binornd(progeny, 0.5));
+       % progeny_RS = progeny - progeny_SS;
         
-        SSxRS_progeny_SS = SSxRS_progeny_SS + progeny_SS;
-        SSxRS_progeny_RS = SSxRS_progeny_RS + progeny_RS;
-    end
-    SSxRS_progeny_SS_random = poissrnd(SSxRS_progeny_SS);
-    SSxRS_progeny_RS_random = poissrnd(SSxRS_progeny_RS);
+       % SSxRS_progeny_SS = SSxRS_progeny_SS + progeny_SS;
+       % SSxRS_progeny_RS = SSxRS_progeny_RS + progeny_RS;
+    %end
+    % Define mean number of progeny that would be SS
+    Probability_SS = 0.5;
+    % Create vectors of Probability and progeny with a length of SSxRS
+    Prob_arr_SSxRS = Probability_SS(:,ones(1,SSxRS));
+    SSxRS_progeny_arr = progeny(:,ones(1,SSxRS));
+    % Calculate 'mean' number of progeny produced by pairing by genotype
+    SSxRS_progeny_SS = round(binornd(SSxRS_progeny_arr, Prob_arr_SSxRS));
+    SSxRS_progeny_RS = SSxRS_progeny_arr - SSxRS_progeny_SS;
+    % Use mean number of progeny to calculate stochastic number of progeny
+    SSxRS_progeny_SS_random = sum(poissrnd(SSxRS_progeny_SS));
+    SSxRS_progeny_RS_random = sum(poissrnd(SSxRS_progeny_RS));
     
     % Find number of SS, RS, and RR progeny produced by RSxRS pairing
-    RSxRS_progeny_RR = 0;
-    RSxRS_progeny_SS = 0;
-    RSxRS_progeny_RS = 0;
-    
-    for jj=1:RSxRS
-        progeny_RR = round(binornd(progeny, 0.25));
-        progeny_SS = round(binornd(progeny, 0.25));
-        progeny_RS = progeny - progeny_SS - progeny_RR;
+    %RSxRS_progeny_RR = 0;
+    %RSxRS_progeny_SS = 0;
+    %RSxRS_progeny_RS = 0;
+    %for jj=1:RSxRS
+        %progeny_RR = round(binornd(progeny, 0.25));
+        %progeny_SS = round(binornd(progeny, 0.25));
+        %progeny_RS = progeny - progeny_SS - progeny_RR;
         
-        RSxRS_progeny_RR = RSxRS_progeny_RR + progeny_RR;
-        RSxRS_progeny_SS = RSxRS_progeny_SS + progeny_SS;
-        RSxRS_progeny_RS = RSxRS_progeny_RS + progeny_RS;
-    end
-    RSxRS_progeny_RR_random = poissrnd(RSxRS_progeny_RR);
-    RSxRS_progeny_SS_random = poissrnd(RSxRS_progeny_SS);
-    RSxRS_progeny_RS_random = poissrnd(RSxRS_progeny_RS);
+        %RSxRS_progeny_RR = RSxRS_progeny_RR + progeny_RR;
+        %RSxRS_progeny_SS = RSxRS_progeny_SS + progeny_SS;
+        %RSxRS_progeny_RS = RSxRS_progeny_RS + progeny_RS;
+    %end
+     % Define mean number of progeny that would be SS or RR
+    Probability_RRorSS = 0.25;
+    % Create vectors of Probability and progeny with a length of RSxRS
+    Prob_arr_RSxRS = Probability_RRorSS(:,ones(1,RSxRS));
+    RSxRS_progeny_arr = progeny(:,ones(1,RSxRS));
+    % Calculate 'mean' number of progeny produced by pairing by genotype
+    RSxRS_progeny_RR = round(binornd(RSxRS_progeny_arr,Prob_arr_RSxRS));
+    RSxRS_progeny_SS = round(binornd(RSxRS_progeny_arr,Prob_arr_RSxRS));
+    RSxRS_progeny_RS = RSxRS_progeny_arr - RSxRS_progeny_RR - RSxRS_progeny_SS;
+    % Use mean number of progeny to calculate stochastic number of progeny
+    RSxRS_progeny_RR_random = sum(poissrnd(RSxRS_progeny_RR));
+    RSxRS_progeny_SS_random = sum(poissrnd(RSxRS_progeny_SS));
+    RSxRS_progeny_RS_random = sum(poissrnd(RSxRS_progeny_RS));
 
     % Find total amount of progeny for RR, SS, and RS
     tot_progeny_RR = RRxRR_progeny_RR_random + RRxRS_progeny_RR_random + RSxRS_progeny_RR_random;
