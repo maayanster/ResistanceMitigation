@@ -205,15 +205,7 @@ while i <= gen_number
     tot_progeny_RS = RRxRS_progeny_RS_random + RRxSS_progeny_RS_random + SSxRS_progeny_RS_random + RSxRS_progeny_RS_random;
     tot_progeny_SS = SSxSS_progeny_SS_random + SSxRS_progeny_SS_random + RSxRS_progeny_SS_random;
 
-    %%% STEP 3: Divide progeny by zone
-    % Dividing progeny across toxic and refuge zone 
-    %RRref = binornd(tot_progeny_RR, Pref);
-    %SSref = binornd(tot_progeny_SS, Pref);
-    %RSref = binornd(tot_progeny_RS, Pref);
-    %RRtoxic = tot_progeny_RR - RRref;
-    %SStoxic = tot_progeny_SS - SSref;
-    %RStoxic = tot_progeny_RS - RSref;  
-
+    %%% STEP 3: Divide progeny between toxic and refuge zone   
     RRref = tot_progeny_RR*Pref;
     SSref = tot_progeny_SS*Pref;
     RSref = tot_progeny_RS*Pref;
@@ -221,23 +213,7 @@ while i <= gen_number
     SStoxic = tot_progeny_SS - SSref;
     RStoxic = tot_progeny_RS - RSref; 
     
-    %%% STEP 4: Selection by zones
-    % Selection not due to natural enemies 
-    %RRref_x = binornd(RRref, Wxrr_ref);
-    %RSref_x = binornd(RSref, Wxrs_ref);
-    %SSref_x = binornd(SSref, Wxss_ref);
-    %RRbt_x = binornd(RRtoxic, Wxrr_toxic);
-    %SSbt_x = binornd(SStoxic, Wxss_toxic);
-    %RSbt_x = binornd(RStoxic,Wxrs_toxic);
-
-    % Selection due to natural enemies 
-    %RRref = binornd(RRref_x,WErr_ref);
-    %SSref = binornd(SSref_x,WEss_ref);
-    %RSref = binornd(RSref_x,WErs_ref);
-    %RRtoxic = binornd(RRbt_x,WErr_toxic);
-    %SStoxic = binornd(SSbt_x,WEss_toxic);
-    %RStoxic = binornd(RSbt_x,WErs_toxic);
-    
+    %%% STEP 4: Selection by zones  
     % Selection - fitness not due to natural enemies 
     RRref_x = RRref* Wxrr_ref;
     RSref_x = RSref*Wxrs_ref;
