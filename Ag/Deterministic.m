@@ -1,4 +1,4 @@
-function [q_freq, gen2thresh] = Deterministic(q_freq, Pref, ...
+function [gen2thresh] = Deterministic(q_freq, Pref, ...
     WErr_ref, WErs_ref, WEss_ref, WErr_toxic, WErs_toxic, WEss_toxic, ...
     gen_num)
 % Deterministic_13March genetic model simulating insecticide resistance 
@@ -94,6 +94,7 @@ while i <= gen_num;         % while generations less than gen_num run loop
     % Displaying generation at which fixation occurs
     if  q_freq >= q_threshold && gen2thresh == 0;
         gen2thresh = i;
+        break
     end
     
     % Saving fequencies for plots (not used in all simulations)
