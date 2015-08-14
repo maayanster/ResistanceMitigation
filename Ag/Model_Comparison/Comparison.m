@@ -6,12 +6,12 @@ Num_sim = 10;                                                                   
 q_freq_arr = [0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005];  % Initial frequency of resistant alleles
 K_arr = [42000, 42000, 42000, 42000, 42000, 42000, 42000, 42000, 42000, 42000];       % Carrying capacity
 Pref_arr = [0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3];                        % Proportion of area that is refuge
-WErr_ref_arr = [0, 0.05, 0.1, 0.15, 0.20,0.25,0.30,0.35,0.40,0.45];                % Fitness of RR in refuge with natural enemies
-WErs_ref_arr = [0.5, 0.5, 0.5, 0.5, 0.5,0.5,0.5,0.5,0.5,0.5];                    % Fitness of RS in refuge with natural enemies
-WEss_ref_arr = [0.5, 0.5, 0.5, 0.5, 0.5,0.5,0.5,0.5,0.5,0.5];                      % Fitness of SS in refuge with natural enemies
+WErr_ref_arr = [0, 0.05, 0.1, 0.15, 0.20,0.25,0.30,0.35,0.40,0.45];                   % Fitness of RR in refuge with natural enemies
+WErs_ref_arr = [0.5, 0.5, 0.5, 0.5, 0.5,0.5,0.5,0.5,0.5,0.5];                         % Fitness of RS in refuge with natural enemies
+WEss_ref_arr = [0.5, 0.5, 0.5, 0.5, 0.5,0.5,0.5,0.5,0.5,0.5];                         % Fitness of SS in refuge with natural enemies
 WErr_toxic_arr = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1];                                      % Fitness of RR in toxic with natural enemies
 WErs_toxic_arr = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1];                                      % Fitness of RS in toxic with natural enemies
-WEss_toxic_arr = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1];                                        % Fitness of SS in toxic with natural enemies
+WEss_toxic_arr = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1];                                      % Fitness of SS in toxic with natural enemies
 gen_num_arr = [2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500];           % Number of generations models are run];      
 
 %% INITIALIZE
@@ -46,7 +46,7 @@ end
 
 %% COMPARE RESULTS
 % Assign parameter that is varied on x-axis
-x = [0, 0.025, 0.05, 0.075,0.1,0.125, 0.15, 0.175, 0.2, 0.225, 0.25,0.275,0.3,0.325,0.35,0.375,0.4,0.425,0.45,0.475,0.5];
+x = [0, 0.05, 0.1, 0.15, 0.20,0.25,0.30,0.35,0.40,0.45];
 
 % Plot calculated stochastic over deterministic ratio of generations to 
 % threshold (y_axis) and the parameter that is varied - x (x_axis)
@@ -55,6 +55,10 @@ subplot(2,1,1)
 plot(x, gen2thresh_sto_median_arr, x, gen2thresh_det_arr)
 ylabel('Generations to threshold','FontSize', 12);
 legend('Stochastic', 'Deterministic');
+
+%% SAVE RESULTS
+filename = strcat('Compare_NEref_fitnessRR',num2str(WErr_ref_arr(1)), '_', num2str(WErr_ref_arr(1)));
+save(filename, 'gen2thresh_sto_median_arr','gen2thresh_det_arr','diff_s_d_arr');
 
 %% INPUTS - NE present in both
 Num_sim_b = 10;                                                                         % Number of simulations that comparison is run
@@ -100,7 +104,7 @@ end
 
 %% COMPARE RESULTS
 % Assign parameter that is varied on x-axis
-x_b = [50, 55, 60, 65, 70, 75, 80, 85, 90, 95];
+x_b = [0, 0.05, 0.1, 0.15, 0.20,0.25,0.30,0.35,0.40,0.45];
 
 % Plot calculated stochastic over deterministic ratio of generations to 
 % threshold (y_axis) and the parameter that is varied - x (x_axis)
@@ -109,3 +113,6 @@ plot(x_b, gen2thresh_sto_median_arr_b, x_b, gen2thresh_det_arr_b)
 xlabel('Mortality (%)', 'FontSize', 12);
 legend('stochastic', 'deterministic');
 
+%% SAVE RESULTS
+filename = strcat('Compare_NEref_fitnessRR',num2str(WErr_ref_arr_b(1)), '_', num2str(WErr_ref_arr_b(1)));
+save(filename, 'gen2thresh_sto_median_arr_b','gen2thresh_det_arr_b','diff_s_d_arr_b');
