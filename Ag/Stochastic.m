@@ -30,7 +30,7 @@ function [generations2thresh, q_array] = Stochastic(q_freq, Pref, K, ...
 %% Initialize
 population = 2900;                     % Initial pest population  
 p_freq = 1 - q_freq;                  % Initial frequency of S allele
-progeny = 236;                         % Number of progeny produced per female 
+progeny = 100;                         % Number of progeny produced per female 
 Wxrr_toxic = 0.207;                   % Fitness of RR in field w/o natural enemies
 Wxss_toxic = 0;                       % Fitness of SS in field w/o natural enemies
 Wxrs_toxic = 0;                       % Fitness of RS in field w/o natural enemies
