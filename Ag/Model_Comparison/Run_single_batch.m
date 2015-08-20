@@ -1,4 +1,4 @@
-function[gen2thresh_sto_median, gen2thresh_det,gen2thresh_s_d,std_stochastic] = ...
+function[gen2thresh_sto_median, gen2thresh_det,gen2thresh_s_d,std_stochastic, Runs_thresh] = ...
     Run_single_batch(q_freq, Pref, K, WErr_ref, WErs_ref, WEss_ref,WErr_toxic, ...
     WErs_toxic,WEss_toxic, gen_num)
 %% Description: runs the stochastic model 100 times and pairs this with a
@@ -17,8 +17,7 @@ for nn = 1:100
             gen_num);
         
         % Saves the number of generations to threshold for each simulation
-        gen2thresh_sto(nn) = generations2thresh;
-        
+        gen2thresh_sto(nn) = generations2thresh;     
 end 
 toc
 % Plot histogram of 100 runs of stochastic model to evaluate its
@@ -31,6 +30,9 @@ gen2thresh_sto_median = prctile(gen2thresh_sto, 50);
 
 % Calculate standard deviation of 100 stochastic runs
 std_stochastic = std(gen2thresh_sto);
+
+% Calculate number of runs that did not reach resistance threshold
+Runs_thresh = sum(gen2thresh == gen_num);
 
 % Call deterministic model for given parameter
 gen2thresh_det = Deterministic(q_freq,...
