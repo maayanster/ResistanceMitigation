@@ -135,12 +135,12 @@ while i <= gen_number
     end
 
     % Calculate 6 different types of pairings:
-    RRxRR = FemRRxMaleRR; 
-    RRxRS = FemRRxMaleRS + FemRSxMaleRR;
-    RRxSS = FemRRxMaleSS + FemSSxMaleRR;
-    SSxSS = FemSSxMaleSS;
-    SSxRS = FemSSxMaleRS + FemRSxMaleSS;
-    RSxRS = FemRSxMaleRS;
+    RRxRR = round(FemRRxMaleRR); 
+    RRxRS = round(FemRRxMaleRS + FemRSxMaleRR);
+    RRxSS = round(FemRRxMaleSS + FemSSxMaleRR);
+    SSxSS = round(FemSSxMaleSS);
+    SSxRS = round(FemSSxMaleRS + FemRSxMaleSS);
+    RSxRS = round(FemRSxMaleRS);
 
     %%% STEP 2: For each type of pairing assign random number of progeny
     % for each genotype (birth rate per pairing)
