@@ -3,9 +3,9 @@ function[gen2thresh_arr, runs_below_thresh, times_crashed_arr] = Stochastic_Runs
     WEss_toxic, gen_num, num_sim)
 % Stochastic_Runs runs stochastic insecticide resistance model 
 % -------------------------------------------------------------------
-% [q_fix_percentileA, q_fix_percentileB, q_fix_percentileC, q_fix_mean] = 
-% Run_stochastic_12March(q_freq, Pref, WErr_ref, WErs_ref, WEss_ref, 
-% gen_num)
+% [gen2thresh_arr, runs_below_thresh, times_crashed_arr] = Stochastic_Runs...
+%   (q_freq, Pref, K, WErr_ref, WErs_ref, WEss_ref,WErr_toxic, WErs_toxic, ...
+%   WEss_toxic, gen_num, num_sim)
 % -------------------------------------------------------------------
 % Description:   Runs 100 simulations of stochastic insecticide resistance
 %                model generating 100 values of generations to threshold,
