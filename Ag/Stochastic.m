@@ -238,6 +238,12 @@ while i <= gen_number
     % Calculate new population 
     N_new = RR + RS + SS;
     
+    % Stop model if calculated population goes to 0 
+    if N_new == 0
+         generations2thresh = nan;
+        break
+    end
+        
     % Calculate population if change in population only followed
     % logistic growth (include density dependent mortality from carrying
     % capacity and intrinsic growth rate)
@@ -276,7 +282,7 @@ end
 % If no resistance developed by the end of the run the number of
 % generations to threshold is recorded as the number of generations
 % simulated
-if q_freq <= q_threshold;
+if q_freq <= q_threshold && N_new > 0;
     generations2thresh = gen_num;
 end
 
