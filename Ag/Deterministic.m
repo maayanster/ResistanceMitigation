@@ -106,7 +106,7 @@ end
 % If no resistance developed by the end of the run the number of
 % generations to threshold is recorded as NaN
 if q_freq <= q_threshold;
-    gen2thresh = NaN;
+    gen2thresh = 2500;
 end
 
 %% Display outputs - not used in comparison runs
